@@ -1,0 +1,79 @@
+<html lang="ja">
+    <head>
+        <meta charset="utf-8"/>
+        <style>
+            body{
+                background-color:rgb(0, 255, 136);
+                font-family: 'Noto Sans CJK JP';
+            }
+            .test {
+    color: #444444;
+    font-size: 1.3em;
+    font-weight: bold;
+    text-shadow: 2px 2px 1px #FFF,
+    -2px 2px 1px #FFF,
+    2px -2px 1px #FFF,
+    -2px -2px 1px #FFF;
+}
+        </style>
+        <script
+            src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+        <script>
+$(function(){
+    initialize();
+});
+
+function initialize(){
+    var speech = new webkitSpeechRecognition();
+    var elm_id = "#content";
+    var arr = [];
+    var arr_id = []
+
+    var recognition = new webkitSpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "ja";
+
+    recognition.addEventListener('result', function(e) {
+        var all_is_final = true;
+        for (var key in e.results){
+            if (key == "length" || key == "item") continue;
+            var index = $.inArray(key, arr_id);
+            if (index != -1) {
+                arr[index] = {"id": key, "script": e.results[key][0].transcript, "isFinal":e.results[key]["isFinal"], "time": arr[index]["time"]};
+            }else{
+                console.log((new Date()).toLocaleString());
+                arr.push({"id": key, "script": e.results[key][0].transcript, "isFinal":e.results[key]["isFinal"], "time":(new Date()).toLocaleString()});
+                arr_id.push(key);
+            }
+
+            if (!e.results[key]["isFinal"]) all_is_final = false;
+        }
+        describe(elm_id, arr);
+    });
+
+    recognition.onsoundend = function(e) {
+        initialize();
+    }
+
+    recognition.start();
+}
+
+function describe(elm_id, arr){
+    var elm = "";
+    for (var i=0;i<arr.length;i++){
+        var mark = "🔊";
+        if (arr[i]["isFinal"]) mark = "✔";
+        elm = arr[i]["time"] + " :" + mark + ": " + arr[i]["script"] + "<br>" + elm;
+    }
+    $(elm_id).html(elm);
+}
+
+        </script>
+    </head>
+<body>
+    <div id="content" class="test"></div>
+</body>
+</html>
